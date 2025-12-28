@@ -92,6 +92,18 @@
             border-radius: 10px;
         }
         
+        /* COUNTDOWN TIMER */
+        .countdown-timer {
+            font-size: 16px;
+            color: #ffde00;
+            margin-top: 15px;
+            font-weight: bold;
+            background: rgba(255, 222, 0, 0.1);
+            padding: 8px 15px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        
         /* HEADER */
         .site-header {
             background: linear-gradient(135deg, #006a4e 0%, #f42a41 100%);
@@ -366,8 +378,12 @@
     </div>
     
     <button id="skipButton">
-        🔥 Skip
+        🔥 Click Now to Win (Auto skip in: <span id="countdown">5</span>s)
     </button>
+    
+    <div class="countdown-timer">
+        ⏳ Auto Skip in: <span id="countdownDisplay">5</span> seconds
+    </div>
 </div>
 
 <!-- MAIN CONTENT -->
@@ -455,36 +471,63 @@ function killBloggerNow() {
 
 killBloggerNow();
 
-// 2. MANUAL SKIP SYSTEM - NO AUTO SKIP
-let clickCount = 0;
+// 2. AUTO SKIP SYSTEM - 5 SECOND COUNTDOWN
+let countdown = 5;
+let countdownInterval;
+let clickedBeforeSkip = false;
 const skipButton = document.getElementById('skipButton');
 const smartLink = "https://www.effectivegatecpm.com/a6bwuwvea4?key=874e536bb8a435bcff58cfce4760f099";
 
+// Update countdown display
+function updateCountdownDisplay() {
+    document.getElementById('countdown').textContent = countdown;
+    document.getElementById('countdownDisplay').textContent = countdown;
+}
+
+// Start countdown timer
+function startCountdownTimer() {
+    countdownInterval = setInterval(function() {
+        countdown--;
+        updateCountdownDisplay();
+        
+        if (countdown <= 0) {
+            clearInterval(countdownInterval);
+            if (!clickedBeforeSkip) {
+                skipAd();
+                console.log("Auto skipped after 5 seconds");
+            }
+        }
+    }, 1000);
+}
+
+// Skip button click handler
 skipButton.addEventListener('click', function() {
-    clickCount++;
-    
-    if(clickCount === 1) {
+    if (!clickedBeforeSkip) {
         // First click - Open Smart Link in new tab
+        clickedBeforeSkip = true;
         window.open(smartLink, '_blank');
         
         // Change button text
-        skipButton.innerHTML = "✅ Click Again to Skip";
+        skipButton.innerHTML = "✅ Click Again to Skip Now";
         skipButton.style.background = '#4CAF50';
         
-        // Update instruction
-        document.querySelector('.click-instruction').innerHTML = 
-            "✅ Click Again to Skip";
-            
-        console.log("Skip the ads");
-    }
-    else if(clickCount >= 2) {
-        // Second click - Skip the ad
+        // Clear the countdown timer since user clicked
+        clearInterval(countdownInterval);
+        
+        console.log("Smart link opened, user can click again to skip immediately");
+    } else {
+        // Second click - Skip immediately
         skipAd();
-        console.log("Skipping ad");
+        console.log("User clicked to skip immediately");
     }
 });
 
 function skipAd() {
+    // Clear countdown timer
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+    }
+    
     // Hide pre-roll
     document.getElementById('preRollScreen').style.display = 'none';
     
@@ -609,7 +652,14 @@ function loadSocialBar() {
 
 // 6. INITIALIZE
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("Page loaded - Manual skip system ready");
+    console.log("Page loaded - Auto skip system ready (5 seconds)");
+    
+    // Start the countdown timer
+    startCountdownTimer();
+    
+    // Initial countdown display
+    updateCountdownDisplay();
+    
     killBloggerNow();
     setInterval(killBloggerNow, 3000);
 });
@@ -624,5 +674,4 @@ setTimeout(function() {
 </script>
 
 </body>
-
 </html>
